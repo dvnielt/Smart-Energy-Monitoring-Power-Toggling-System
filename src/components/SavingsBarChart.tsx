@@ -9,8 +9,15 @@ import {
   YAxis,
 } from "recharts"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Panel, PanelBody, PanelHeader } from "@/components/Panel"
 import { useThirtyDayAggregates } from "@/lib/hooks/useThirtyDayAggregates"
+
+const BAR_COLORS = [
+  "hsl(0 45% 58%)",
+  "var(--color-chart-sand)",
+  "var(--color-chart-muted)",
+  "var(--color-chart-teal)",
+]
 
 export function SavingsBarChart() {
   const bars = useThirtyDayAggregates()
@@ -18,82 +25,93 @@ export function SavingsBarChart() {
   const ours = bars.find((b) => b.label === "With Our Device")?.value ?? 0
   const savings = Math.max(0, peak - ours)
 
+  const shortLabels = bars.map((b) => {
+    if (b.label === "Avg Peak Cost") return "Peak"
+    if (b.label === "Avg Median Cost") return "Median"
+    if (b.label === "Avg Off-Peak Cost") return "Off-peak"
+    return "Our device"
+  })
+
+  const chartData = bars.map((b, i) => ({
+    ...b,
+    shortLabel: shortLabels[i],
+  }))
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>30-Day Cost Comparison</CardTitle>
-        <p className="text-sm text-[var(--color-muted-foreground)]">
-          Average electricity cost per kWh across pricing tiers
-        </p>
-      </CardHeader>
-      <CardContent>
-        <div style={{ width: "100%", height: 380 }}>
-          <ResponsiveContainer>
+    <Panel className="h-full flex flex-col">
+      <PanelHeader title="30-day savings" />
+      <PanelBody className="flex-1 flex flex-col pt-2">
+        <div className="w-full flex-1 min-h-[min(300px,38vh)]">
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={bars}
-              margin={{ top: 30, right: 24, bottom: 8, left: 8 }}
-              barCategoryGap="20%"
+              data={chartData}
+              margin={{ top: 24, right: 8, bottom: 4, left: 0 }}
+              barCategoryGap="28%"
             >
-              <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
+              <CartesianGrid
+                stroke="var(--color-border)"
+                strokeDasharray="4 4"
+                vertical={false}
+              />
               <XAxis
-                dataKey="label"
-                stroke="#6b7280"
+                dataKey="shortLabel"
+                stroke="var(--color-chart-muted)"
                 fontSize={11}
-                interval={0}
-                tickMargin={8}
-                height={56}
-                angle={-15}
-                textAnchor="end"
+                tickLine={false}
+                axisLine={false}
+                dy={8}
               />
               <YAxis
-                tickFormatter={(v) => `$${Number(v).toFixed(3)}`}
-                stroke="#6b7280"
-                fontSize={12}
+                tickFormatter={(v) => `$${Number(v).toFixed(2)}`}
+                stroke="var(--color-chart-muted)"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                width={44}
               />
               <Tooltip
+                cursor={{ fill: "var(--color-muted)", opacity: 0.4 }}
                 content={({ active, payload }) => {
-                  if (!active || !payload || !payload.length) return null
-                  const p = payload[0].payload as (typeof bars)[number]
+                  if (!active || !payload?.length) return null
+                  const p = payload[0].payload as (typeof chartData)[number]
                   return (
-                    <div className="rounded-md border border-[var(--color-border)] bg-white px-3 py-2 shadow-md text-sm">
-                      <div className="font-semibold">{p.label}</div>
-                      <div className="tabular-nums">
-                        ${p.value.toFixed(3)} /kWh
-                      </div>
-                      <div className="text-xs text-[var(--color-muted-foreground)] mt-1 max-w-[220px]">
-                        {p.description}
-                      </div>
+                    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
+                      <div className="font-medium mb-0.5">{p.label}</div>
+                      <div className="font-mono">${p.value.toFixed(3)}/kWh</div>
                     </div>
                   )
                 }}
               />
               <Bar
                 dataKey="value"
-                radius={[6, 6, 0, 0]}
+                radius={[4, 4, 0, 0]}
+                animationDuration={600}
                 label={{
                   position: "top",
-                  fontSize: 12,
-                  fill: "#111827",
-                  fontWeight: 600,
+                  fontSize: 10,
+                  fill: "var(--color-muted-foreground)",
                   formatter: (v: unknown) =>
-                    typeof v === "number" ? `$${v.toFixed(3)}` : "",
+                    typeof v === "number" ? `$${v.toFixed(2)}` : "",
                 }}
               >
-                {bars.map((b, i) => (
-                  <Cell key={i} fill={b.color} />
+                {chartData.map((_, i) => (
+                  <Cell key={i} fill={BAR_COLORS[i] ?? "var(--color-chart-muted)"} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
+
         {bars.length > 0 && (
-          <div className="mt-4 text-sm text-[var(--color-foreground)]">
-            Using your smart plug saves an estimated{" "}
-            <span className="font-semibold">${savings.toFixed(3)} per kWh</span>{" "}
-            versus average peak rates.
-          </div>
+          <p className="mt-4 pt-4 border-t border-[var(--color-border)]/70 text-sm text-[var(--color-muted-foreground)] leading-relaxed">
+            Estimated savings of{" "}
+            <span className="font-mono font-medium text-[var(--color-foreground)]">
+              ${savings.toFixed(3)}/kWh
+            </span>{" "}
+            vs. peak rates
+          </p>
         )}
-      </CardContent>
-    </Card>
+      </PanelBody>
+    </Panel>
   )
 }

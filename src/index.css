@@ -1,41 +1,117 @@
 @import "tailwindcss";
 
 @theme {
-  --color-border: hsl(214.3 31.8% 91.4%);
-  --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(222.2 84% 4.9%);
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222.2 84% 4.9%);
-  --color-primary: hsl(222.2 47.4% 11.2%);
-  --color-primary-foreground: hsl(210 40% 98%);
-  --color-secondary: hsl(210 40% 96.1%);
-  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --color-muted: hsl(210 40% 96.1%);
-  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
-  --color-accent: hsl(210 40% 96.1%);
-  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(210 40% 98%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(222.2 84% 4.9%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(222.2 84% 4.9%);
-  --radius: 0.5rem;
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-border: hsl(40 10% 88%);
+  --color-input: hsl(40 10% 88%);
+  --color-ring: hsl(168 55% 38%);
+  --color-background: hsl(40 20% 97%);
+  --color-surface: hsl(40 15% 99%);
+  --color-foreground: hsl(220 15% 14%);
+  --color-primary: hsl(168 55% 32%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(40 12% 93%);
+  --color-secondary-foreground: hsl(220 15% 22%);
+  --color-muted: hsl(40 14% 94%);
+  --color-muted-foreground: hsl(220 8% 46%);
+  --color-accent: hsl(168 30% 94%);
+  --color-accent-foreground: hsl(168 55% 25%);
+  --color-destructive: hsl(0 65% 50%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-card: hsl(40 15% 99%);
+  --color-card-foreground: hsl(220 15% 14%);
+  --color-popover: hsl(40 15% 99%);
+  --color-popover-foreground: hsl(220 15% 14%);
+
+  --color-chart-ink: hsl(220 15% 22%);
+  --color-chart-teal: hsl(168 55% 38%);
+  --color-chart-sand: hsl(32 60% 52%);
+  --color-chart-muted: hsl(220 8% 72%);
+
+  --radius: 0.75rem;
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
-  html, body, #root {
+
+  html,
+  body,
+  #root {
     height: 100%;
   }
+
   body {
     margin: 0;
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .tabular-nums,
+  .font-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .page-enter {
+    animation: page-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .page-enter-delay-1 {
+    animation-delay: 0.07s;
+  }
+
+  .page-enter-delay-2 {
+    animation-delay: 0.14s;
+  }
+
+  .page-enter-delay-3 {
+    animation-delay: 0.21s;
+  }
+
+  .surface-panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+
+  .grain {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .page-enter-delay-1,
+  .page-enter-delay-2,
+  .page-enter-delay-3 {
+    animation: none;
   }
 }

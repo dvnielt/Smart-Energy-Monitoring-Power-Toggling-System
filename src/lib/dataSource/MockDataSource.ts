@@ -26,6 +26,13 @@ function periodForRate(rate: number): RatePeriod {
   return "off-peak"
 }
 
+function currentTouRate(): { rate: number; period: RatePeriod } {
+  const now = new Date()
+  const hour = now.getHours() + now.getMinutes() / 60
+  const { rate } = ratePeriodForHour(hour, 0)
+  return { rate: parseFloat(rate.toFixed(3)), period: periodForRate(rate) }
+}
+
 // Tiny seeded PRNG so the same date returns the same shape on reselect.
 function makeRng(seed: number) {
   let s = seed % 2147483647
@@ -57,17 +64,20 @@ export class MockDataSource implements DataSource {
 
   constructor() {
     const now = new Date().toISOString()
+    const { rate, period } = currentTouRate()
     this.devices = [
       {
         id: "dev-1",
         name: "Living Room AC",
         applianceType: "Air Conditioner",
         isOn: true,
+        isOnline: true,
+        controlMode: "auto",
         voltage: 119.8,
         current: 6.42,
         powerDraw: 769,
-        ratePeriod: "peak",
-        currentRate: 0.32,
+        ratePeriod: period,
+        currentRate: rate,
         lastUpdated: now,
       },
       {
@@ -75,11 +85,13 @@ export class MockDataSource implements DataSource {
         name: "Garage Dryer",
         applianceType: "Clothes Dryer",
         isOn: false,
+        isOnline: true,
+        controlMode: "manual",
         voltage: 120.1,
         current: 0,
         powerDraw: 0,
-        ratePeriod: "peak",
-        currentRate: 0.32,
+        ratePeriod: period,
+        currentRate: rate,
         lastUpdated: now,
       },
       {
@@ -87,11 +99,13 @@ export class MockDataSource implements DataSource {
         name: "Kitchen Dishwasher",
         applianceType: "Dishwasher",
         isOn: true,
+        isOnline: false,
+        controlMode: "auto",
         voltage: 119.5,
         current: 9.81,
         powerDraw: 1173,
-        ratePeriod: "off-peak",
-        currentRate: 0.11,
+        ratePeriod: period,
+        currentRate: rate,
         lastUpdated: now,
       },
     ]
@@ -112,6 +126,7 @@ export class MockDataSource implements DataSource {
           return
         }
         dev.isOn = nextState
+        dev.controlMode = "manual"
         if (!nextState) {
           dev.current = 0
           dev.powerDraw = 0
@@ -179,7 +194,21 @@ export class MockDataSource implements DataSource {
 
   private tick() {
     const now = new Date().toISOString()
+    const { rate, period } = currentTouRate()
+
+    // Simulate occasional reconnect for offline device
     for (const dev of this.devices) {
+      if (!dev.isOnline && Math.random() < 0.08) {
+        dev.isOnline = true
+      }
+    }
+
+    for (const dev of this.devices) {
+      dev.ratePeriod = period
+      dev.currentRate = rate
+
+      if (!dev.isOnline) continue
+
       if (!dev.isOn) {
         dev.voltage = parseFloat((120 + (Math.random() - 0.5) * 0.3).toFixed(1))
         dev.current = 0
